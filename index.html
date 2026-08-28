@@ -2,67 +2,638 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HR Tracker Prototype</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>DilSe HR Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@700&family=Roboto+Mono:ital,wght@0,700;1,400&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    body { font-family: sans-serif; text-align: center; padding: 2rem; }
-    #hrDisplay { font-size: 5rem; font-weight: bold; margin: 1rem 0; }
-    button { font-size: 1.2rem; padding: 0.8rem 1.5rem; cursor: pointer; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: #f8fafc;
+      color: #0f172a;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    
+    /* Header */
+    header {
+      padding: 1rem;
+      text-align: center;
+      background: #ffffff;
+      border-bottom: 1px solid #e2e8f0;
+      flex-shrink: 0;
+    }
+    .logo {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #0EA5E9;
+      cursor: pointer;
+      display: inline-block;
+    }
+    .status-badge {
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-top: 0.25rem;
+    }
+    .status-connected { color: #16a34a; }
+    .status-disconnected { color: #dc2626; }
+
+    /* Views Container */
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+    }
+    .page {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      display: none;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 1.5rem;
+    }
+    .page.active { display: flex; }
+
+    /* Bottom Navigation Bar (25% height equivalent) */
+    .nav-bar {
+      height: 70px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 1rem;
+    }
+    .icon-btn {
+      background: none;
+      border: none;
+      font-size: 2rem;
+      cursor: pointer;
+      padding: 0.5rem;
+    }
+
+    /* Landing Page */
+    #lp-content {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .btn-run {
+      background: #0EA5E9;
+      color: #ffffff;
+      border: none;
+      padding: 1.25rem 2.5rem;
+      font-size: 1.5rem;
+      font-weight: bold;
+      border-radius: 50px;
+      box-shadow: 0 10px 25px -5px rgba(14, 165, 233, 0.4);
+      cursor: pointer;
+      transition: transform 0.1s;
+    }
+    .btn-run:active { transform: scale(0.96); }
+
+    /* Main Page */
+    #mp-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 1.5rem;
+    }
+    .hr-ring-container {
+      width: 230px;
+      height: 230px;
+      border-radius: 50%;
+      border: 16px solid #64748B; /* Default Grey */
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background: #ffffff;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+      transition: border-color 0.4s ease;
+    }
+    .live-hr {
+      font-family: 'Roboto Mono', monospace;
+      font-size: 4.5rem;
+      font-weight: 700;
+      line-height: 1;
+      color: #0f172a;
+    }
+    .avg-hr {
+      font-family: 'Roboto Mono', monospace;
+      font-size: 1.2rem;
+      font-style: italic;
+      color: #64748b;
+      margin-top: 0.5rem;
+    }
+    .ease-up-box {
+      background-color: #b91c1c;
+      color: #ffffff;
+      font-weight: 800;
+      font-size: 1.25rem;
+      padding: 0.75rem 2rem;
+      border-radius: 8px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      visibility: hidden;
+      animation: flash 1s infinite alternate;
+    }
+    @keyframes flash {
+      0% { opacity: 1; }
+      100% { opacity: 0.2; }
+    }
+
+    /* Settings Page */
+    .settings-form {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      background: #ffffff;
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .setting-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .setting-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .setting-row label { flex: 1; font-weight: 600; }
+    .setting-row input[type="number"] {
+      width: 70px;
+      padding: 0.5rem;
+      font-size: 1rem;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      text-align: center;
+    }
+    .btn-save {
+      background: #0f172a;
+      color: #ffffff;
+      padding: 0.75rem;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* Metrics Page */
+    .metrics-summary {
+      display: flex;
+      justify-content: space-around;
+      background: #ffffff;
+      padding: 1rem;
+      border-radius: 8px;
+      font-weight: 600;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .chart-box {
+      flex: 1;
+      position: relative;
+      max-height: 250px;
+      margin: 1rem 0;
+    }
+    .metrics-range {
+      text-align: center;
+      font-size: 0.9rem;
+      color: #64748b;
+      font-weight: 500;
+    }
+
+    /* Exit Page */
+    #ep-content {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 2rem;
+    }
+    .quote-box {
+      font-size: 1.5rem;
+      font-style: italic;
+      color: #334155;
+      line-height: 1.4;
+    }
+
+    /* Modal Overlay */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+    }
+    .modal-content {
+      background: #ffffff;
+      padding: 1.5rem;
+      border-radius: 12px;
+      width: 85%;
+      max-width: 320px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .modal-btn {
+      padding: 0.75rem;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-cancel { background: #e2e8f0; color: #334155; }
+    .btn-stats { background: #0EA5E9; color: #ffffff; }
+    .btn-exit { background: #dc2626; color: #ffffff; }
   </style>
 </head>
 <body>
-  <h1>Coros HR Tracker</h1>
-  <button id="connectBtn">Connect HR Band</button>
-  <div id="hrDisplay">-- bpm</div>
-  <p id="status">Disconnected</p>
+
+  <header>
+    <div class="logo" id="logoBtn">DilSe</div>
+    <div class="status-badge status-disconnected" id="statusBadge">Not Connected</div>
+  </header>
+
+  <main>
+    <!-- Landing Page (LP) -->
+    <div id="page-lp" class="page active">
+      <div id="lp-content">
+        <button class="btn-run" id="letsRunBtn">LET'S RUN 🏃‍♂️</button>
+      </div>
+      <div class="nav-bar">
+        <button class="icon-btn" onclick="navTo('sp')">⚙️</button>
+        <button class="icon-btn" onclick="handleExitClick()">🚪</button>
+      </div>
+    </div>
+
+    <!-- Main Page (MP) -->
+    <div id="page-mp" class="page">
+      <div id="mp-content">
+        <div class="hr-ring-container" id="hrRing">
+          <div class="live-hr" id="liveHrDisplay">--</div>
+          <div class="avg-hr" id="avgHrDisplay">-- avg</div>
+        </div>
+        <div class="ease-up-box" id="easeUpBanner">EASE UP</div>
+      </div>
+      <div class="nav-bar">
+        <button class="icon-btn" onclick="navTo('sp')">⚙️</button>
+        <button class="icon-btn" onclick="handleExitClick()">🚪</button>
+      </div>
+    </div>
+
+    <!-- Settings Page (SP) -->
+    <div id="page-sp" class="page">
+      <div class="settings-form">
+        <h3>HR Settings</h3>
+        <div class="setting-group">
+          <div class="setting-row">
+            <input type="checkbox" id="z2Enable">
+            <label for="z2Enable">Enable Zone 2 Range</label>
+          </div>
+          <div class="setting-row">
+            <label>Lower Bound:</label>
+            <input type="number" id="z2Lower" placeholder="120">
+          </div>
+          <div class="setting-row">
+            <label>Upper Bound:</label>
+            <input type="number" id="z2Upper" placeholder="130">
+          </div>
+        </div>
+        <hr style="border: 0; border-top: 1px solid #e2e8f0;">
+        <div class="setting-group">
+          <div class="setting-row">
+            <input type="checkbox" id="maxEnable">
+            <label for="maxEnable">Enable Global Max HR</label>
+          </div>
+          <div class="setting-row">
+            <label>Global Max:</label>
+            <input type="number" id="maxHrInput" placeholder="160">
+          </div>
+        </div>
+        <button class="btn-save" onclick="saveSettings()">Save & Back</button>
+      </div>
+      <div class="nav-bar">
+        <button class="icon-btn" onclick="navTo('sp')">⚙️</button>
+        <button class="icon-btn" onclick="handleExitClick()">🚪</button>
+      </div>
+    </div>
+
+    <!-- Metrics Page (MP-Stats) -->
+    <div id="page-metrics" class="page">
+      <div class="metrics-summary">
+        <div>Duration: <span id="mDuration">0m 0s</span></div>
+        <div>Avg HR: <span id="mAvg">--</span></div>
+      </div>
+      <div class="chart-box">
+        <canvas id="hrChart"></canvas>
+      </div>
+      <div class="metrics-range" id="mRange">Session Range: Min -- bpm | Max -- bpm</div>
+      <div class="nav-bar">
+        <button class="icon-btn" onclick="navTo('sp')">⚙️</button>
+        <button class="icon-btn" onclick="handleExitClick()">🚪</button>
+      </div>
+    </div>
+
+    <!-- Exit Page (EP) -->
+    <div id="page-ep" class="page">
+      <div id="ep-content">
+        <div class="quote-box">"Great run! Every step counts towards a stronger heart."</div>
+      </div>
+      <div class="nav-bar">
+        <button class="icon-btn" onclick="navTo('sp')">⚙️</button>
+        <button class="icon-btn" onclick="handleExitClick()">🚪</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- Exit Modal -->
+  <div class="modal-overlay" id="exitModal">
+    <div class="modal-content">
+      <h3>End Tracking Session?</h3>
+      <button class="modal-btn btn-cancel" onclick="closeExitModal()">Cancel</button>
+      <button class="modal-btn btn-stats" id="modalStatsBtn" onclick="confirmExit(true)">View Stats & Exit</button>
+      <button class="modal-btn btn-exit" onclick="confirmExit(false)">Just Exit</button>
+    </div>
+  </div>
 
   <script>
-    const connectBtn = document.getElementById('connectBtn');
-    const hrDisplay = document.getElementById('hrDisplay');
-    const statusEl = document.getElementById('status');
+    // State Variables
+    let bleDevice = null;
+    let bleServer = null;
+    let wakeLock = null;
+    let currentPage = 'lp';
+    
+    let sessionData = []; // [{ timeSec, hr }]
+    let sessionStartTime = null;
+    let avgTimer = null;
+    let latestHr = 0;
+    let chartInstance = null;
 
-    connectBtn.addEventListener('click', async () => {
+    // Load Settings
+    let settings = JSON.parse(localStorage.getItem('dilse_settings')) || {
+      z2Enable: false,
+      z2Lower: 120,
+      z2Upper: 130,
+      maxEnable: false,
+      maxHr: 160
+    };
+
+    // DOM Elements
+    const logoBtn = document.getElementById('logoBtn');
+    const statusBadge = document.getElementById('statusBadge');
+    const letsRunBtn = document.getElementById('letsRunBtn');
+    const liveHrDisplay = document.getElementById('liveHrDisplay');
+    const avgHrDisplay = document.getElementById('avgHrDisplay');
+    const hrRing = document.getElementById('hrRing');
+    const easeUpBanner = document.getElementById('easeUpBanner');
+    const exitModal = document.getElementById('exitModal');
+
+    // Initialization
+    window.addEventListener('DOMContentLoaded', () => {
+      populateSettingsForm();
+      logoBtn.addEventListener('click', () => navTo('lp'));
+      letsRunBtn.addEventListener('click', connectBLE);
+    });
+
+    // Navigation Switcher
+    function navTo(pageId) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById(`page-${pageId}`).classList.add('active');
+      currentPage = pageId;
+
+      if (pageId === 'metrics') renderMetricsChart();
+    }
+
+    // Settings Functions
+    function populateSettingsForm() {
+      document.getElementById('z2Enable').checked = settings.z2Enable;
+      document.getElementById('z2Lower').value = settings.z2Lower;
+      document.getElementById('z2Upper').value = settings.z2Upper;
+      document.getElementById('maxEnable').checked = settings.maxEnable;
+      document.getElementById('maxHrInput').value = settings.maxHr;
+    }
+
+    function saveSettings() {
+      settings = {
+        z2Enable: document.getElementById('z2Enable').checked,
+        z2Lower: parseInt(document.getElementById('z2Lower').value) || 120,
+        z2Upper: parseInt(document.getElementById('z2Upper').value) || 130,
+        maxEnable: document.getElementById('maxEnable').checked,
+        maxHr: parseInt(document.getElementById('maxHrInput').value) || 160
+      };
+      localStorage.setItem('dilse_settings', JSON.stringify(settings));
+      navTo('lp');
+    }
+
+    // BLE & Session Core
+    async function connectBLE() {
       try {
-        statusEl.innerText = 'Requesting Bluetooth Device...';
-        
-        // Step 1: Request BLE device with Heart Rate Service
-        const device = await navigator.bluetooth.requestDevice({
+        statusBadge.innerText = 'Connecting...';
+        bleDevice = await navigator.bluetooth.requestDevice({
           filters: [{ services: ['heart_rate'] }]
         });
 
-        statusEl.innerText = 'Connecting to GATT Server...';
-        const server = await device.gatt.connect();
-
-        statusEl.innerText = 'Getting Heart Rate Service...';
-        const service = await server.getPrimaryService('heart_rate');
-
-        statusEl.innerText = 'Getting HR Measurement Characteristic...';
+        bleDevice.addEventListener('gattserverdisconnected', onDisconnected);
+        bleServer = await bleDevice.gatt.connect();
+        const service = await bleServer.getPrimaryService('heart_rate');
         const characteristic = await service.getCharacteristic('heart_rate_measurement');
-
-        // Step 2: Subscribe to notifications
         await characteristic.startNotifications();
         characteristic.addEventListener('characteristicvaluechanged', handleHRUpdate);
 
-        statusEl.innerText = `Connected to ${device.name || 'Coros Band'}`;
-      } catch (error) {
-        statusEl.innerText = `Error: ${error.message}`;
+        // Update UI & Start Tracking
+        statusBadge.innerText = 'Connected';
+        statusBadge.className = 'status-badge status-connected';
+        startSession();
+        requestWakeLock();
+        navTo('mp');
+      } catch (err) {
+        statusBadge.innerText = 'Not Connected';
+        statusBadge.className = 'status-badge status-disconnected';
+        alert(`Bluetooth Error: ${err.message}`);
       }
-    });
+    }
+
+    function startSession() {
+      sessionData = [];
+      sessionStartTime = Date.now();
+      
+      if (avgTimer) clearInterval(avgTimer);
+      avgTimer = setInterval(updateAverageDisplay, 5000);
+    }
 
     function handleHRUpdate(event) {
       const value = event.target.value;
-      // Flags byte determines if HR is 8-bit or 16-bit
       const flags = value.getUint8(0);
-      const is16Bit = flags & 0x01;
-      
-      let heartRate;
-      if (is16Bit) {
-        heartRate = value.getUint16(1, true); // Little endian
+      latestHr = (flags & 0x01) ? value.getUint16(1, true) : value.getUint8(1);
+
+      const elapsedSec = Math.floor((Date.now() - sessionStartTime) / 1000);
+      sessionData.push({ timeSec: elapsedSec, hr: latestHr });
+
+      liveHrDisplay.innerText = latestHr;
+      applyConditionalFormatting(latestHr);
+    }
+
+    function updateAverageDisplay() {
+      if (sessionData.length === 0) return;
+      const sum = sessionData.reduce((acc, curr) => acc + curr.hr, 0);
+      const avg = Math.round(sum / sessionData.length);
+      avgHrDisplay.innerText = `${avg} avg`;
+    }
+
+    // Conditional Formatting Engine
+    function applyConditionalFormatting(hr) {
+      // 1. Zone 2 Formatting
+      if (settings.z2Enable) {
+        const lower = settings.z2Lower;
+        const upper = settings.z2Upper;
+
+        if (hr >= lower && hr <= upper) {
+          hrRing.style.borderColor = '#15803D'; // Deep Green
+        } else if (hr < lower) {
+          if (lower - hr <= 10) {
+            hrRing.style.borderColor = '#86EFAC'; // Light Green
+          } else {
+            hrRing.style.borderColor = '#64748B'; // Grey
+          }
+        } else if (hr > upper) {
+          if (hr - upper <= 10) {
+            hrRing.style.borderColor = '#EAB308'; // Deep Yellow
+          } else {
+            hrRing.style.borderColor = '#AD1C1C'; // Deep Red (#ad1c1c)
+          }
+        }
       } else {
-        heartRate = value.getUint8(1);
+        hrRing.style.borderColor = '#64748B'; // Default Grey
       }
 
-      hrDisplay.innerText = `${heartRate} bpm`;
+      // 2. Global Max Formatting
+      if (settings.maxEnable && hr >= settings.maxHr) {
+        easeUpBanner.style.visibility = 'visible';
+      } else {
+        easeUpBanner.style.visibility = 'hidden';
+      }
+    }
+
+    // Exit & Teardown Handlers
+    function handleExitClick() {
+      document.getElementById('modalStatsBtn').style.display = 
+        (sessionData.length > 0) ? 'block' : 'none';
+      exitModal.style.display = 'flex';
+    }
+
+    function closeExitModal() {
+      exitModal.style.display = 'none';
+    }
+
+    function confirmExit(viewStats) {
+      closeExitModal();
+      disconnectBLE();
+
+      if (viewStats && sessionData.length > 0) {
+        navTo('metrics');
+      } else {
+        navTo('ep');
+      }
+    }
+
+    function disconnectBLE() {
+      if (avgTimer) clearInterval(avgTimer);
+      if (bleDevice && bleDevice.gatt.connected) {
+        bleDevice.gatt.disconnect();
+      }
+      onDisconnected();
+    }
+
+    function onDisconnected() {
+      statusBadge.innerText = 'Not Connected';
+      statusBadge.className = 'status-badge status-disconnected';
+      releaseWakeLock();
+    }
+
+    // Screen Wake Lock API
+    async function requestWakeLock() {
+      try {
+        if ('wakeLock' in navigator) {
+          wakeLock = await navigator.wakeLock.request('screen');
+        }
+      } catch (e) { console.log('Wake Lock Error:', e); }
+    }
+
+    function releaseWakeLock() {
+      if (wakeLock) {
+        wakeLock.release();
+        wakeLock = null;
+      }
+    }
+
+    // Metrics Chart Rendering
+    function renderMetricsChart() {
+      if (sessionData.length === 0) return;
+
+      const durationSec = sessionData[sessionData.length - 1].timeSec;
+      const mins = Math.floor(durationSec / 60);
+      const secs = durationSec % 60;
+      document.getElementById('mDuration').innerText = `${mins}m ${secs}s`;
+
+      const hrs = sessionData.map(d => d.hr);
+      const avg = Math.round(hrs.reduce((a, b) => a + b, 0) / hrs.length);
+      const minHr = Math.min(...hrs);
+      const maxHr = Math.max(...hrs);
+
+      document.getElementById('mAvg').innerText = `${avg} bpm`;
+      document.getElementById('mRange').innerText = `Session Range: Min ${minHr} bpm | Max ${maxHr} bpm`;
+
+      const ctx = document.getElementById('hrChart').getContext('2d');
+      if (chartInstance) chartInstance.destroy();
+
+      const labels = sessionData.map(d => (d.timeSec / 60).toFixed(1));
+
+      // Build Horizontal Shading / Lines
+      const annotations = {};
+      
+      chartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Heart Rate',
+            data: hrs,
+            borderColor: '#0EA5E9',
+            borderWidth: 2,
+            pointRadius: 0,
+            fill: false,
+            tension: 0.2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: { title: { display: true, text: 'Time (mins)' } },
+            y: { title: { display: true, text: 'BPM' }, suggestMin: 60, suggestMax: 180 }
+          },
+          plugins: {
+            legend: { display: false }
+          }
+        }
+      });
     }
   </script>
 </body>
