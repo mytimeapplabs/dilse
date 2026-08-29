@@ -2,12 +2,28 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>DilSe HR Tracker</title>
+  
+  <!-- Web App Manifest (Data URI with App Logo Option 3: Flame Heart) -->
+  <link rel="manifest" href="data:application/manifest+json,{
+    %22name%22:%22DilSe%20HR%22,
+    %22short_name%22:%22DilSe%22,
+    %22start_url%22:%22.%22,
+    %22display%22:%22standalone%22,
+    %22background_color%22:%22#f8fafc%22,
+    %22theme_color%22:%22#0EA5E9%22,
+    %22icons%22:[{%22src%22:%22data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230EA5E9'/><path d='M50 20 C30 10 10 30 25 55 C35 72 50 85 50 85 C50 85 65 72 75 55 C90 30 70 10 50 20 Z' fill='%23FF4B4B'/><path d='M50 20 C45 35 55 45 50 85 C65 72 75 55 C90 30 70 10 50 20 Z' fill='%23FF7B7B'/></svg>%22,%22sizes%22:%22192x192%22,%22type%22:%22image/svg+xml%22}]
+  }">
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@700&family=Roboto+Mono:ital,wght@0,700;1,400&display=swap" rel="stylesheet">
+  
+  <!-- Chart.js and Annotation Plugin -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -20,7 +36,6 @@
       overflow: hidden;
     }
     
-    /* Header */
     header {
       padding: 1rem;
       text-align: center;
@@ -34,7 +49,6 @@
       font-weight: 700;
       color: #0EA5E9;
       cursor: pointer;
-      display: inline-block;
     }
     .status-badge {
       font-size: 0.85rem;
@@ -44,7 +58,6 @@
     .status-connected { color: #16a34a; }
     .status-disconnected { color: #dc2626; }
 
-    /* Views Container */
     main {
       flex: 1;
       display: flex;
@@ -62,23 +75,27 @@
     }
     .page.active { display: flex; }
 
-    /* Bottom Navigation Bar (25% height equivalent) */
+    /* Bottom 25% Real Estate Navigation Alignment */
     .nav-bar {
-      height: 70px;
+      height: 80px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 0 1rem;
+      padding: 0 1.5rem;
+      padding-bottom: max(1rem, env(safe-area-inset-bottom));
+      margin-top: auto;
     }
     .icon-btn {
       background: none;
       border: none;
-      font-size: 2rem;
+      font-size: 2.2rem;
       cursor: pointer;
       padding: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
-    /* Landing Page */
     #lp-content {
       flex: 1;
       display: flex;
@@ -95,11 +112,8 @@
       border-radius: 50px;
       box-shadow: 0 10px 25px -5px rgba(14, 165, 233, 0.4);
       cursor: pointer;
-      transition: transform 0.1s;
     }
-    .btn-run:active { transform: scale(0.96); }
 
-    /* Main Page */
     #mp-content {
       flex: 1;
       display: flex;
@@ -108,18 +122,20 @@
       align-items: center;
       gap: 1.5rem;
     }
+    
+    /* 36px Thick Dynamic HR Ring */
     .hr-ring-container {
-      width: 230px;
-      height: 230px;
+      width: 250px;
+      height: 250px;
       border-radius: 50%;
-      border: 16px solid #64748B; /* Default Grey */
+      border: 36px solid #64748B;
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
       background: #ffffff;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-      transition: border-color 0.4s ease;
+      box-shadow: 0 6px 24px rgba(0,0,0,0.08);
+      transition: border-color 0.3s ease;
     }
     .live-hr {
       font-family: 'Roboto Mono', monospace;
@@ -130,29 +146,30 @@
     }
     .avg-hr {
       font-family: 'Roboto Mono', monospace;
-      font-size: 1.2rem;
+      font-size: 1.25rem;
       font-style: italic;
       color: #64748b;
       margin-top: 0.5rem;
     }
+    
     .ease-up-box {
-      background-color: #b91c1c;
+      background-color: #ad1c1c;
       color: #ffffff;
-      font-weight: 800;
-      font-size: 1.25rem;
-      padding: 0.75rem 2rem;
-      border-radius: 8px;
+      font-weight: 900;
+      font-size: 1.75rem;
+      padding: 0.9rem 2.5rem;
+      border-radius: 12px;
       text-transform: uppercase;
-      letter-spacing: 1px;
+      letter-spacing: 1.5px;
       visibility: hidden;
-      animation: flash 1s infinite alternate;
+      box-shadow: 0 4px 15px rgba(173, 28, 28, 0.4);
+      animation: flash 0.8s infinite alternate;
     }
     @keyframes flash {
-      0% { opacity: 1; }
-      100% { opacity: 0.2; }
+      0% { opacity: 1; transform: scale(1); }
+      100% { opacity: 0.3; transform: scale(0.97); }
     }
 
-    /* Settings Page */
     .settings-form {
       display: flex;
       flex-direction: column;
@@ -160,21 +177,12 @@
       background: #ffffff;
       padding: 1.5rem;
       border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     }
-    .setting-group {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-    }
-    .setting-row {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
+    .setting-group { display: flex; flex-direction: column; gap: 0.5rem; }
+    .setting-row { display: flex; align-items: center; gap: 0.5rem; }
     .setting-row label { flex: 1; font-weight: 600; }
     .setting-row input[type="number"] {
-      width: 70px;
+      width: 75px;
       padding: 0.5rem;
       font-size: 1rem;
       border: 1px solid #cbd5e1;
@@ -184,15 +192,13 @@
     .btn-save {
       background: #0f172a;
       color: #ffffff;
-      padding: 0.75rem;
+      padding: 0.85rem;
       border: none;
-      border-radius: 6px;
+      border-radius: 8px;
       font-size: 1rem;
       font-weight: 600;
-      cursor: pointer;
     }
 
-    /* Metrics Page */
     .metrics-summary {
       display: flex;
       justify-content: space-around;
@@ -200,22 +206,20 @@
       padding: 1rem;
       border-radius: 8px;
       font-weight: 600;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     }
     .chart-box {
       flex: 1;
       position: relative;
-      max-height: 250px;
+      min-height: 250px;
       margin: 1rem 0;
     }
     .metrics-range {
       text-align: center;
-      font-size: 0.9rem;
+      font-size: 0.95rem;
       color: #64748b;
       font-weight: 500;
     }
 
-    /* Exit Page */
     #ep-content {
       flex: 1;
       display: flex;
@@ -224,14 +228,8 @@
       text-align: center;
       padding: 2rem;
     }
-    .quote-box {
-      font-size: 1.5rem;
-      font-style: italic;
-      color: #334155;
-      line-height: 1.4;
-    }
+    .quote-box { font-size: 1.5rem; font-style: italic; color: #334155; }
 
-    /* Modal Overlay */
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -252,16 +250,10 @@
       flex-direction: column;
       gap: 1rem;
     }
-    .modal-btn {
-      padding: 0.75rem;
-      border: none;
-      border-radius: 6px;
-      font-weight: 600;
-      cursor: pointer;
-    }
+    .modal-btn { padding: 0.75rem; border: none; border-radius: 6px; font-weight: 600; }
     .btn-cancel { background: #e2e8f0; color: #334155; }
     .btn-stats { background: #0EA5E9; color: #ffffff; }
-    .btn-exit { background: #dc2626; color: #ffffff; }
+    .btn-exit { background: #ad1c1c; color: #ffffff; }
   </style>
 </head>
 <body>
@@ -278,8 +270,8 @@
         <button class="btn-run" id="letsRunBtn">LET'S RUN 🏃‍♂️</button>
       </div>
       <div class="nav-bar">
-        <button class="icon-btn" onclick="navTo('sp')">⚙️</button>
-        <button class="icon-btn" onclick="handleExitClick()">🚪</button>
+        <button class="icon-btn" onclick="navTo('sp')" title="Settings (Option 3: Pulse Bolt)">⚡</button>
+        <button class="icon-btn" onclick="handleExitClick()" title="Exit (Option 3: Finish Flag)">🏁</button>
       </div>
     </div>
 
@@ -293,8 +285,8 @@
         <div class="ease-up-box" id="easeUpBanner">EASE UP</div>
       </div>
       <div class="nav-bar">
-        <button class="icon-btn" onclick="navTo('sp')">⚙️</button>
-        <button class="icon-btn" onclick="handleExitClick()">🚪</button>
+        <button class="icon-btn" onclick="navTo('sp')" title="Settings (Option 3: Pulse Bolt)">⚡</button>
+        <button class="icon-btn" onclick="handleExitClick()" title="Exit (Option 3: Finish Flag)">🏁</button>
       </div>
     </div>
 
@@ -330,8 +322,8 @@
         <button class="btn-save" onclick="saveSettings()">Save & Back</button>
       </div>
       <div class="nav-bar">
-        <button class="icon-btn" onclick="navTo('sp')">⚙️</button>
-        <button class="icon-btn" onclick="handleExitClick()">🚪</button>
+        <button class="icon-btn" onclick="navTo('sp')" title="Settings (Option 3: Pulse Bolt)">⚡</button>
+        <button class="icon-btn" onclick="handleExitClick()" title="Exit (Option 3: Finish Flag)">🏁</button>
       </div>
     </div>
 
@@ -346,8 +338,8 @@
       </div>
       <div class="metrics-range" id="mRange">Session Range: Min -- bpm | Max -- bpm</div>
       <div class="nav-bar">
-        <button class="icon-btn" onclick="navTo('sp')">⚙️</button>
-        <button class="icon-btn" onclick="handleExitClick()">🚪</button>
+        <button class="icon-btn" onclick="navTo('sp')" title="Settings (Option 3: Pulse Bolt)">⚡</button>
+        <button class="icon-btn" onclick="handleExitClick()" title="Exit (Option 3: Finish Flag)">🏁</button>
       </div>
     </div>
 
@@ -357,13 +349,13 @@
         <div class="quote-box">"Great run! Every step counts towards a stronger heart."</div>
       </div>
       <div class="nav-bar">
-        <button class="icon-btn" onclick="navTo('sp')">⚙️</button>
-        <button class="icon-btn" onclick="handleExitClick()">🚪</button>
+        <button class="icon-btn" onclick="navTo('sp')" title="Settings (Option 3: Pulse Bolt)">⚡</button>
+        <button class="icon-btn" onclick="handleExitClick()" title="Exit (Option 3: Finish Flag)">🏁</button>
       </div>
     </div>
   </main>
 
-  <!-- Exit Modal -->
+  <!-- Modal -->
   <div class="modal-overlay" id="exitModal">
     <div class="modal-content">
       <h3>End Tracking Session?</h3>
@@ -374,19 +366,16 @@
   </div>
 
   <script>
-    // State Variables
     let bleDevice = null;
     let bleServer = null;
     let wakeLock = null;
-    let currentPage = 'lp';
     
-    let sessionData = []; // [{ timeSec, hr }]
+    let sessionData = [];
     let sessionStartTime = null;
     let avgTimer = null;
     let latestHr = 0;
     let chartInstance = null;
 
-    // Load Settings
     let settings = JSON.parse(localStorage.getItem('dilse_settings')) || {
       z2Enable: false,
       z2Lower: 120,
@@ -395,7 +384,6 @@
       maxHr: 160
     };
 
-    // DOM Elements
     const logoBtn = document.getElementById('logoBtn');
     const statusBadge = document.getElementById('statusBadge');
     const letsRunBtn = document.getElementById('letsRunBtn');
@@ -405,23 +393,18 @@
     const easeUpBanner = document.getElementById('easeUpBanner');
     const exitModal = document.getElementById('exitModal');
 
-    // Initialization
     window.addEventListener('DOMContentLoaded', () => {
       populateSettingsForm();
       logoBtn.addEventListener('click', () => navTo('lp'));
       letsRunBtn.addEventListener('click', connectBLE);
     });
 
-    // Navigation Switcher
     function navTo(pageId) {
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
       document.getElementById(`page-${pageId}`).classList.add('active');
-      currentPage = pageId;
-
       if (pageId === 'metrics') renderMetricsChart();
     }
 
-    // Settings Functions
     function populateSettingsForm() {
       document.getElementById('z2Enable').checked = settings.z2Enable;
       document.getElementById('z2Lower').value = settings.z2Lower;
@@ -442,7 +425,6 @@
       navTo('lp');
     }
 
-    // BLE & Session Core
     async function connectBLE() {
       try {
         statusBadge.innerText = 'Connecting...';
@@ -457,7 +439,6 @@
         await characteristic.startNotifications();
         characteristic.addEventListener('characteristicvaluechanged', handleHRUpdate);
 
-        // Update UI & Start Tracking
         statusBadge.innerText = 'Connected';
         statusBadge.className = 'status-badge status-connected';
         startSession();
@@ -473,7 +454,6 @@
     function startSession() {
       sessionData = [];
       sessionStartTime = Date.now();
-      
       if (avgTimer) clearInterval(avgTimer);
       avgTimer = setInterval(updateAverageDisplay, 5000);
     }
@@ -486,8 +466,10 @@
       const elapsedSec = Math.floor((Date.now() - sessionStartTime) / 1000);
       sessionData.push({ timeSec: elapsedSec, hr: latestHr });
 
-      liveHrDisplay.innerText = latestHr;
-      applyConditionalFormatting(latestHr);
+      requestAnimationFrame(() => {
+        liveHrDisplay.innerText = latestHr;
+        applyConditionalFormatting(latestHr);
+      });
     }
 
     function updateAverageDisplay() {
@@ -497,55 +479,35 @@
       avgHrDisplay.innerText = `${avg} avg`;
     }
 
-    // Conditional Formatting Engine
     function applyConditionalFormatting(hr) {
-      // 1. Zone 2 Formatting
       if (settings.z2Enable) {
         const lower = settings.z2Lower;
         const upper = settings.z2Upper;
 
         if (hr >= lower && hr <= upper) {
-          hrRing.style.borderColor = '#15803D'; // Deep Green
+          hrRing.style.borderColor = '#15803D';
         } else if (hr < lower) {
-          if (lower - hr <= 10) {
-            hrRing.style.borderColor = '#86EFAC'; // Light Green
-          } else {
-            hrRing.style.borderColor = '#64748B'; // Grey
-          }
+          hrRing.style.borderColor = (lower - hr <= 10) ? '#86EFAC' : '#64748B';
         } else if (hr > upper) {
-          if (hr - upper <= 10) {
-            hrRing.style.borderColor = '#EAB308'; // Deep Yellow
-          } else {
-            hrRing.style.borderColor = '#AD1C1C'; // Deep Red (#ad1c1c)
-          }
+          hrRing.style.borderColor = (hr - upper <= 10) ? '#EAB308' : '#AD1C1C';
         }
       } else {
-        hrRing.style.borderColor = '#64748B'; // Default Grey
+        hrRing.style.borderColor = '#64748B';
       }
 
-      // 2. Global Max Formatting
-      if (settings.maxEnable && hr >= settings.maxHr) {
-        easeUpBanner.style.visibility = 'visible';
-      } else {
-        easeUpBanner.style.visibility = 'hidden';
-      }
+      easeUpBanner.style.visibility = (settings.maxEnable && hr >= settings.maxHr) ? 'visible' : 'hidden';
     }
 
-    // Exit & Teardown Handlers
     function handleExitClick() {
-      document.getElementById('modalStatsBtn').style.display = 
-        (sessionData.length > 0) ? 'block' : 'none';
+      document.getElementById('modalStatsBtn').style.display = (sessionData.length > 0) ? 'block' : 'none';
       exitModal.style.display = 'flex';
     }
 
-    function closeExitModal() {
-      exitModal.style.display = 'none';
-    }
+    function closeExitModal() { exitModal.style.display = 'none'; }
 
     function confirmExit(viewStats) {
       closeExitModal();
       disconnectBLE();
-
       if (viewStats && sessionData.length > 0) {
         navTo('metrics');
       } else {
@@ -555,9 +517,7 @@
 
     function disconnectBLE() {
       if (avgTimer) clearInterval(avgTimer);
-      if (bleDevice && bleDevice.gatt.connected) {
-        bleDevice.gatt.disconnect();
-      }
+      if (bleDevice && bleDevice.gatt.connected) bleDevice.gatt.disconnect();
       onDisconnected();
     }
 
@@ -567,23 +527,16 @@
       releaseWakeLock();
     }
 
-    // Screen Wake Lock API
     async function requestWakeLock() {
       try {
-        if ('wakeLock' in navigator) {
-          wakeLock = await navigator.wakeLock.request('screen');
-        }
-      } catch (e) { console.log('Wake Lock Error:', e); }
+        if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen');
+      } catch (e) {}
     }
 
     function releaseWakeLock() {
-      if (wakeLock) {
-        wakeLock.release();
-        wakeLock = null;
-      }
+      if (wakeLock) { wakeLock.release(); wakeLock = null; }
     }
 
-    // Metrics Chart Rendering
     function renderMetricsChart() {
       if (sessionData.length === 0) return;
 
@@ -605,9 +558,36 @@
 
       const labels = sessionData.map(d => (d.timeSec / 60).toFixed(1));
 
-      // Build Horizontal Shading / Lines
-      const annotations = {};
-      
+      const annotationsObj = {
+        avgLine: {
+          type: 'line',
+          yMin: avg,
+          yMax: avg,
+          borderColor: '#f59e0b',
+          borderWidth: 2,
+          borderDash: [6, 6],
+          label: {
+            display: true,
+            content: `Avg: ${avg}`,
+            position: 'end',
+            backgroundColor: '#f59e0b',
+            color: '#fff',
+            font: { size: 10 }
+          }
+        }
+      };
+
+      if (settings.z2Enable) {
+        annotationsObj.zoneBox = {
+          type: 'box',
+          yMin: settings.z2Lower,
+          yMax: settings.z2Upper,
+          backgroundColor: 'rgba(21, 128, 61, 0.15)',
+          borderColor: 'rgba(21, 128, 61, 0.4)',
+          borderWidth: 1
+        };
+      }
+
       chartInstance = new Chart(ctx, {
         type: 'line',
         data: {
@@ -616,7 +596,7 @@
             label: 'Heart Rate',
             data: hrs,
             borderColor: '#0EA5E9',
-            borderWidth: 2,
+            borderWidth: 2.5,
             pointRadius: 0,
             fill: false,
             tension: 0.2
@@ -627,10 +607,11 @@
           maintainAspectRatio: false,
           scales: {
             x: { title: { display: true, text: 'Time (mins)' } },
-            y: { title: { display: true, text: 'BPM' }, suggestMin: 60, suggestMax: 180 }
+            y: { title: { display: true, text: 'BPM' }, suggestMin: Math.max(40, minHr - 10), suggestMax: maxHr + 10 }
           },
           plugins: {
-            legend: { display: false }
+            legend: { display: false },
+            annotation: { annotations: annotationsObj }
           }
         }
       });
