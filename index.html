@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>DilSe HR Tracker</title>
   
-  <!-- Web App Manifest (Data URI with App Logo Option 3: Flame Heart) -->
+  <!-- Web App Manifest (Data URI with App Logo Option 3: Athletic Flame Heart) -->
   <link rel="manifest" href="data:application/manifest+json,{
     %22name%22:%22DilSe%20HR%22,
     %22short_name%22:%22DilSe%22,
@@ -75,14 +75,14 @@
     }
     .page.active { display: flex; }
 
-    /* Bottom 25% Real Estate Navigation Alignment */
+    /* Bottom 25% Real Estate Navigation Alignment (Req ID 80) */
     .nav-bar {
-      height: 80px;
+      height: 85px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       padding: 0 1.5rem;
-      padding-bottom: max(1rem, env(safe-area-inset-bottom));
+      padding-bottom: calc(1.5rem + env(safe-area-inset-bottom));
       margin-top: auto;
     }
     .icon-btn {
@@ -123,7 +123,7 @@
       gap: 1.5rem;
     }
     
-    /* 36px Thick Dynamic HR Ring */
+    /* 36px Thick Dynamic HR Ring (Req ID 210) */
     .hr-ring-container {
       width: 250px;
       height: 250px;
@@ -228,7 +228,7 @@
       text-align: center;
       padding: 2rem;
     }
-    .quote-box { font-size: 1.5rem; font-style: italic; color: #334155; }
+    .quote-box { font-size: 1.4rem; font-style: italic; color: #334155; line-height: 1.5; }
 
     .modal-overlay {
       position: fixed;
@@ -270,8 +270,8 @@
         <button class="btn-run" id="letsRunBtn">LET'S RUN 🏃‍♂️</button>
       </div>
       <div class="nav-bar">
-        <button class="icon-btn" onclick="navTo('sp')" title="Settings (Option 3: Pulse Bolt)">⚡</button>
-        <button class="icon-btn" onclick="handleExitClick()" title="Exit (Option 3: Finish Flag)">🏁</button>
+        <button class="icon-btn" onclick="navTo('sp')" title="Settings (Pulse Bolt)">⚡</button>
+        <button class="icon-btn" onclick="handleExitClick()" title="Exit (Finish Flag)">🏁</button>
       </div>
     </div>
 
@@ -285,8 +285,8 @@
         <div class="ease-up-box" id="easeUpBanner">EASE UP</div>
       </div>
       <div class="nav-bar">
-        <button class="icon-btn" onclick="navTo('sp')" title="Settings (Option 3: Pulse Bolt)">⚡</button>
-        <button class="icon-btn" onclick="handleExitClick()" title="Exit (Option 3: Finish Flag)">🏁</button>
+        <button class="icon-btn" onclick="navTo('sp')" title="Settings (Pulse Bolt)">⚡</button>
+        <button class="icon-btn" onclick="handleExitClick()" title="Exit (Finish Flag)">🏁</button>
       </div>
     </div>
 
@@ -322,8 +322,8 @@
         <button class="btn-save" onclick="saveSettings()">Save & Back</button>
       </div>
       <div class="nav-bar">
-        <button class="icon-btn" onclick="navTo('sp')" title="Settings (Option 3: Pulse Bolt)">⚡</button>
-        <button class="icon-btn" onclick="handleExitClick()" title="Exit (Option 3: Finish Flag)">🏁</button>
+        <button class="icon-btn" onclick="navTo('sp')" title="Settings (Pulse Bolt)">⚡</button>
+        <button class="icon-btn" onclick="handleExitClick()" title="Exit (Finish Flag)">🏁</button>
       </div>
     </div>
 
@@ -338,24 +338,24 @@
       </div>
       <div class="metrics-range" id="mRange">Session Range: Min -- bpm | Max -- bpm</div>
       <div class="nav-bar">
-        <button class="icon-btn" onclick="navTo('sp')" title="Settings (Option 3: Pulse Bolt)">⚡</button>
-        <button class="icon-btn" onclick="handleExitClick()" title="Exit (Option 3: Finish Flag)">🏁</button>
+        <button class="icon-btn" onclick="navTo('sp')" title="Settings (Pulse Bolt)">⚡</button>
+        <button class="icon-btn" onclick="handleExitClick()" title="Exit (Finish Flag)">🏁</button>
       </div>
     </div>
 
     <!-- Exit Page (EP) -->
     <div id="page-ep" class="page">
       <div id="ep-content">
-        <div class="quote-box">"Great run! Every step counts towards a stronger heart."</div>
+        <div class="quote-box" id="quoteDisplay">"Great run! Every step counts towards a stronger heart."</div>
       </div>
       <div class="nav-bar">
-        <button class="icon-btn" onclick="navTo('sp')" title="Settings (Option 3: Pulse Bolt)">⚡</button>
-        <button class="icon-btn" onclick="handleExitClick()" title="Exit (Option 3: Finish Flag)">🏁</button>
+        <button class="icon-btn" onclick="navTo('sp')" title="Settings (Pulse Bolt)">⚡</button>
+        <button class="icon-btn" onclick="handleExitClick()" title="Exit (Finish Flag)">🏁</button>
       </div>
     </div>
   </main>
 
-  <!-- Modal -->
+  <!-- Exit Modal -->
   <div class="modal-overlay" id="exitModal">
     <div class="modal-content">
       <h3>End Tracking Session?</h3>
@@ -376,6 +376,20 @@
     let latestHr = 0;
     let chartInstance = null;
 
+    // 10 Rotating Running / Cardio Quotes (Req ID 290)
+    const runningQuotes = [
+      '"Great run! Every step counts towards a stronger heart."',
+      '"Clear your mind, set your pace, and let your heart lead the way."',
+      '"The miracle isn\'t that I finished. The miracle is that I had the courage to start."',
+      '"Running is a road to self-discovery and heart strength."',
+      '"No matter how slow you go, you are still lapping everybody on the couch."',
+      '"Heart rate up, stress down. Outstanding work today!"',
+      '"Consistency builds endurance. Great effort on today\'s session!"',
+      '"Your body can stand almost anything. It\'s your mind that you have to convince."',
+      '"Small steps every day lead to big heart health wins."',
+      '"Run when you can, walk if you have to, crawl if you must; just never give up."'
+    ];
+
     let settings = JSON.parse(localStorage.getItem('dilse_settings')) || {
       z2Enable: false,
       z2Lower: 120,
@@ -392,6 +406,7 @@
     const hrRing = document.getElementById('hrRing');
     const easeUpBanner = document.getElementById('easeUpBanner');
     const exitModal = document.getElementById('exitModal');
+    const quoteDisplay = document.getElementById('quoteDisplay');
 
     window.addEventListener('DOMContentLoaded', () => {
       populateSettingsForm();
@@ -402,7 +417,14 @@
     function navTo(pageId) {
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
       document.getElementById(`page-${pageId}`).classList.add('active');
+      
       if (pageId === 'metrics') renderMetricsChart();
+      if (pageId === 'ep') setRandomQuote();
+    }
+
+    function setRandomQuote() {
+      const randomIndex = Math.floor(Math.random() * runningQuotes.length);
+      quoteDisplay.innerText = runningQuotes[randomIndex];
     }
 
     function populateSettingsForm() {
@@ -480,21 +502,23 @@
     }
 
     function applyConditionalFormatting(hr) {
+      // Zone 2 Conditional Formatting (Req ID 220)
       if (settings.z2Enable) {
         const lower = settings.z2Lower;
         const upper = settings.z2Upper;
 
         if (hr >= lower && hr <= upper) {
-          hrRing.style.borderColor = '#15803D';
+          hrRing.style.borderColor = '#15803D'; // Deep green
         } else if (hr < lower) {
-          hrRing.style.borderColor = (lower - hr <= 10) ? '#86EFAC' : '#64748B';
+          hrRing.style.borderColor = (lower - hr < 10) ? '#86EFAC' : '#64748B'; // Light green vs Grey
         } else if (hr > upper) {
-          hrRing.style.borderColor = (hr - upper <= 10) ? '#EAB308' : '#AD1C1C';
+          hrRing.style.borderColor = (hr - upper < 10) ? '#EAB308' : '#AD1C1C'; // Deep yellow vs Deep red
         }
       } else {
         hrRing.style.borderColor = '#64748B';
       }
 
+      // Strictly triggers ONLY when liveHr >= maxHr (Req ID 230 Updated)
       easeUpBanner.style.visibility = (settings.maxEnable && hr >= settings.maxHr) ? 'visible' : 'hidden';
     }
 
